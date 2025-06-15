@@ -27,11 +27,9 @@ Simple python script and calibre recipe to build an epub with your saved article
 
 ## Main.py parameters (.env)
 
-SEND_EMAIL=True | False => Should the script send the email?
-
-SMTP_* => Your server credentials
-
-DESTINATION_EMAIL => Where should the script send the epub
+- SEND_EMAIL=True | False => Should the script send the email?
+- SMTP_* => Your server credentials
+- DESTINATION_EMAIL => Where should the script send the epub
 
 ## Run the script
 
