@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s -  %(levelname)s-  %(message)s')
-logging.info('Inicio del proceso')
+logging.info('Start')
 
 SEND_EMAIL = os.getenv("SEND_EMAIL", "false").strip().lower() in ("True", "true")
 
@@ -31,10 +31,10 @@ subprocess.run(['ebook-convert','Todoist.recipe',file_name])
 
 if SEND_EMAIL:
     # Send the file via email
-    logging.info('Enviando correo al email: ' + DESTINATION_EMAIL)
+    logging.info('Sending email to: ' + DESTINATION_EMAIL)
     subprocess.run(
         ['calibre-smtp','--attachment',file_name,'--relay',SMTP_SERVER,'--port',SMTP_PORT,'--username',SMTP_USER,'--password',SMTP_PASSWORD,
         '--encryption-method','TLS','--subject',file_name,SMTP_FROM,DESTINATION_EMAIL,'email body']
     )
 
-    logging.info('Final del proceso')
+    logging.info('End')
