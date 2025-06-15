@@ -1,0 +1,7 @@
+# Copy this file to your home folder and populate values
+
+URL_KEYWORD_EXCEPTIONS = ['key1','key2']
+ARCHIVE_DOWNLOADED = False
+
+TODOIST_PROJECT_ID = 'aaaaaa'
+TODOIST_API_KEY='bbbbbbb'
