@@ -21,7 +21,7 @@ SMTP_FROM = os.getenv('SMTP_FROM')
 DESTINATION_EMAIL= os.getenv('DESTINATION_EMAIL')
 
 # File naming
-output = subprocess.check_output(["date", "+%d-%m-%Y"])
+output = subprocess.check_output(["date", "+%d-%m-%Y-%H-%M-%S"])
 file_stamp=bytes.decode(output)
 file_name = 'todoist-' + file_stamp.strip() + '.epub'
 logging.info('File name: ' + file_name)
