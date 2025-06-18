@@ -32,7 +32,7 @@ RUN chown appuser:appuser /home/appuser/env.local
 USER appuser
 
 # Clonamos el repositorio
-RUN git clone https://github.com/alvaroreig/todoist2ebook todoist2ebook
+RUN git clone https://github.com/rga5321/todoist2ebook todoist2ebook
 
 # Creamos copias de .env y vars.py a partir de las muestras
 WORKDIR /home/appuser/todoist2ebook
