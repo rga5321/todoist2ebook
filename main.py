@@ -55,7 +55,7 @@ if SEND_EMAIL:
     msg['Content-Transfer-Encoding'] = 'base64'
 
     # Cuerpo del mensaje
-    msg.set_content("Adjunto libro para tu Kindle.")
+    msg.set_content("This is the body of the email. The attached file is the latest Todoist tasks in epub format.")
 
     # Adjuntar archivo
     with open(file_name, 'rb') as f:
@@ -70,14 +70,5 @@ if SEND_EMAIL:
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
 
-    logging.info("Correo enviado con éxito.")
-
-
-
-    # logging.info('Sending email to: ' + DESTINATION_EMAIL)
-    # subprocess.run(
-    #     ['calibre-smtp','--attachment',file_name,'--relay',SMTP_SERVER,'--port',SMTP_PORT,'--username',SMTP_USER,'--password',SMTP_PASSWORD,
-    #     '--encryption-method','TLS','--subject',file_name,SMTP_FROM,DESTINATION_EMAIL,'email body']
-    # )
-
+    logging.info("Email sent successfully to " + DESTINATION_EMAIL)
     logging.info('End')
