@@ -24,7 +24,7 @@ WORKDIR /home/appuser
 
 # Preparamos el entrypoint
 COPY entrypoint.sh /home/appuser/entrypoint.sh
-COPY env.local /home/appuser/env.local
+COPY env.local.sample /home/appuser/env.local
 RUN chown appuser:appuser /home/appuser/entrypoint.sh && chmod +x /home/appuser/entrypoint.sh
 RUN chown appuser:appuser /home/appuser/env.local
 
