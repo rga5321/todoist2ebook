@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y locales tzdata && \
     dpkg-reconfigure -f noninteractive tzdata && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV TZ Europe/Madrid
+ENV LANG=en_US.UTF-8
+ENV TZ=Europe/Madrid
 RUN apt-get install -y \
     calibre \
     python3 \
