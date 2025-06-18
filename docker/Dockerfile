@@ -26,6 +26,7 @@ USER appuser
 
 # Clonamos el repositorio
 RUN git clone https://github.com/alvaroreig/todoist2ebook todoist2ebook
+RUN cd todoist2ebook && git checkout f_better_email_sending
 
 # Creamos copias de .env y vars.py a partir de las muestras
 WORKDIR /home/appuser/todoist2ebook

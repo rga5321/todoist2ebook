@@ -51,8 +51,8 @@ if SEND_EMAIL:
     msg['Subject'] = 'Kindle delivery: ' + file_name
     msg['Date'] = email.utils.formatdate(localtime=True)
     msg['Message-ID'] = email.utils.make_msgid()
-    msg['X-Mailer'] = 'Python smtplib'
-    msg['X-Priority'] = '3'
+    msg['MIME-Version'] = '1.0'
+    msg['Content-Transfer-Encoding'] = 'base64'
 
     # Cuerpo del mensaje
     msg.set_content("Adjunto libro para tu Kindle.")
@@ -65,7 +65,7 @@ if SEND_EMAIL:
     # Enviar email
     context = ssl.create_default_context()
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        server.set_debuglevel(1)  # Muestra el diálogo SMTP
+        # server.set_debuglevel(1)  # Muestra el diálogo SMTP
         server.starttls(context=context)
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
