@@ -15,7 +15,7 @@ Simple python script and calibre recipe to build an epub with your saved article
 - Activate it ```source .venv/bin/activate```
 - Install dotenv ```pip3 install python-dotenv```
 - Copy .env.sample to .env and populate values
-- Either copy var.py.sample to your home folder and populate values, or modify the variables in Todoist.recipe
+- Either copy vars.py.sample to vars.py your home folder and populate values, or modify the variables in Todoist.recipe
 
 ## Recipe parameters (in var.py or in Todoist.recipe)
 
@@ -27,11 +27,9 @@ Simple python script and calibre recipe to build an epub with your saved article
 
 ## Main.py parameters (.env)
 
-SEND_EMAIL=True | False => Should the script send the email?
-
-SMTP_* => Your server credentials
-
-DESTINATION_EMAIL => Where should the script send the epub
+- SEND_EMAIL=True | False => Should the script send the email?
+- SMTP_* => Your server credentials
+- DESTINATION_EMAIL => Where should the script send the epub
 
 ## Run the script
 
