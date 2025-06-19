@@ -7,8 +7,12 @@ Simple python script and calibre recipe to build an epub with your saved article
 
 ![Index](img/article.png)
 
+## Usage with Docker (recommended)
 
-## Installation
+- Download the docker/env.local.sample to env.local and populate values
+- In the same folder where env.local is, run ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-arm64:latest``` or ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-amd64:latest``` depending on your architecture
+
+## Usage (standalone)
 
 - Clone the project
 - Create a venv ```python3 -m venv .venv```
@@ -16,6 +20,7 @@ Simple python script and calibre recipe to build an epub with your saved article
 - Install dotenv ```pip3 install python-dotenv```
 - Copy .env.sample to .env and populate values
 - Either copy vars.py.sample to vars.py your home folder and populate values, or modify the variables in Todoist.recipe
+- Run the script ```(.venv) ~/todoist2ebook$ python3 main.py```
 
 ## Recipe parameters (in var.py or in Todoist.recipe)
 
@@ -31,15 +36,9 @@ Simple python script and calibre recipe to build an epub with your saved article
 - SMTP_* => Your server credentials
 - DESTINATION_EMAIL => Where should the script send the epub
 
-## Run the script
+## Output
 
-Just run the script:
-
-```
-(.venv) ~/todoist2ebook$ python3 main.py
-```
-
-And you should see something like:
+You should see something like:
 
 ```
 2025-06-15 17:11:05,958 -  INFO-  Start
