@@ -32,8 +32,13 @@ file_stamp=bytes.decode(output)
 file_name = 'todoist-' + file_stamp.strip() + '.epub'
 logging.info('File name: ' + file_name)
 
+
 # Building the epub with the recipe
 subprocess.run(['ebook-convert','Todoist.recipe',file_name])
+
+# Añadir QR a cada artículo del epub
+from epub_qr import add_qr_to_epub
+add_qr_to_epub(file_name)
 
 if SEND_EMAIL:
     logging.info('Sending email to: ' + DESTINATION_EMAIL)
