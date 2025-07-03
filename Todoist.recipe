@@ -88,9 +88,9 @@ class Todoist2ebook(BasicNewsRecipe):
         publication_type = 'magazine'
         title = "Todoist"
         # timefmt = '' # uncomment to remove date from the filenames, if commented then you will get something like `Todoist [Wed, 13 May 2020]`
-        masthead_url = "https://raw.githubusercontent.com/alvaroreig/todoist2ebook/master/img/todoist-logo.png"
+        masthead_url = "https://raw.githubusercontent.com/rga5321/todoist2ebook/master/img/todoist-logo.png"
         # will make square cover; this will replace text and cover of the default
-        cover_url = "https://raw.githubusercontent.com/alvaroreig/todoist2ebook/master/img/todoist-cover.png"
+        cover_url = "https://raw.githubusercontent.com/rga5321/todoist2ebook/master/img/todoist-cover.png"
         # --------------------------------------------------------------------------
         
         # Inherited developer settings
