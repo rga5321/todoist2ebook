@@ -7,12 +7,7 @@ Simple python script and calibre recipe to build an epub with your saved article
 
 ![Index](img/article.png)
 
-## Usage with Docker (recommended)
-
-- Download the docker/env.local.sample to env.local and populate values
-- In the same folder where env.local is, run ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-arm64:latest``` or ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-amd64:latest``` depending on your architecture
-
-## Usage (standalone)
+## Usage (standalone, recommended)
 
 - Clone the project
 - Create a venv ```python3 -m venv .venv```
@@ -105,5 +100,11 @@ EPUB output written to /home/xxxx/todoist2ebook/todoist-15-06-2025.epub
 Output saved to   /home/xxxx/todoist2ebook/todoist-15-06-2025.epub
 2025-06-15 17:11:11,884 -  INFO-  Sending email to: xxxxxxx@kindle.com
 2025-06-15 17:11:16,588 -  INFO-  End
+```
+
+## Usage with Docker (experimental)
+
+- Download the docker/env.local.sample to env.local and populate values
+- In the same folder where env.local is, run ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-arm64:latest``` or ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-amd64:latest``` depending on your architecture
 
 
