@@ -33,8 +33,23 @@ file_name = 'todoist-' + file_stamp.strip() + '.epub'
 logging.info('File name: ' + file_name)
 
 
-# Building the epub with the recipe
-subprocess.run(['ebook-convert','Todoist.recipe',file_name])
+
+# Load .env variables for recipe
+import ast
+def parse_env_list(val):
+    try:
+        return ast.literal_eval(val)
+    except Exception:
+        return []
+
+env = os.environ.copy()
+env['URL_KEYWORD_EXCEPTIONS'] = os.getenv('URL_KEYWORD_EXCEPTIONS', "[]")
+env['ARCHIVE_DOWNLOADED'] = os.getenv('ARCHIVE_DOWNLOADED', "False")
+env['TODOIST_PROJECT_ID'] = os.getenv('TODOIST_PROJECT_ID', "")
+env['TODOIST_API_KEY'] = os.getenv('TODOIST_API_KEY', "")
+
+# Building the epub with the recipe, passing env vars
+subprocess.run(['ebook-convert','Todoist.recipe',file_name], env=env)
 
 # Añadir QR a cada artículo del epub
 from epub_qr import add_qr_to_epub

@@ -12,24 +12,21 @@ Simple python script and calibre recipe to build an epub with your saved article
 - Clone the project
 - Create a venv ```python3 -m venv .venv```
 - Activate it ```source .venv/bin/activate```
-- Install dotenv ```pip3 install python-dotenv```
-- Copy .env.sample to .env and populate values
-- Either copy vars.py.sample to vars.py your home folder and populate values, or modify the variables in Todoist.recipe
+- Install dependencies for QR and dotenv:  
+  ```pip3 install python-dotenv qrcode pillow beautifulsoup4```
+- Copy the .env sample and populate it ```cp .env.sample .env```
 - Run the script ```(.venv) ~/todoist2ebook$ python3 main.py```
 
-## Recipe parameters (in var.py or in Todoist.recipe)
 
-- URL_KEYWORD_EXCEPTIONS = keywords in an URL that will result in it's exclusion
-- ARCHIVE_DOWNLOADED = True | False => Should the script close the tasks after retrieving the urls
+## Parameters (.env)
 
-- TODOIST_PROJECT_ID => Todoist project where the URLs will be recovered
-- TODOIST_API_KEY => Your api KEY
-
-## Main.py parameters (.env)
-
-- SEND_EMAIL=True | False => Should the script send the email?
-- SMTP_* => Your server credentials
-- DESTINATION_EMAIL => Where should the script send the epub
+- `URL_KEYWORD_EXCEPTIONS` = keywords in an URL that will result in its exclusion (example: `['jotdown','gastronomia']`)
+- `ARCHIVE_DOWNLOADED` = True | False => Should the script close the tasks after retrieving the urls
+- `TODOIST_PROJECT_ID` => Todoist project where the URLs will be recovered
+- `TODOIST_API_KEY` => Your api KEY
+- `SEND_EMAIL`=True | False => Should the script send the email?
+- `SMTP_*` => Your server credentials
+- `DESTINATION_EMAIL` => Where should the script send the epub
 
 ## Output
 

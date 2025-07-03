@@ -21,27 +21,23 @@ __version__ = '0.0.1'
 """
 # CONFIGURATION ###########################################################
 
-# If True, load the configuration from ~/vars.py
-USE_GLOBAL_CONFIG = True
+import os
+import ast
+# Load configuration from environment variables set by main.py
+def parse_env_bool(val):
+    return str(val).strip().lower() in ("true", "1", "yes")
 
-URL_KEYWORD_EXCEPTIONS = ['aaa','bbb']
-ARCHIVE_DOWNLOADED=False
-TODOIST_PROJECT_ID = 'aaaa' # your Todoist project ID
-TODOIST_API_KEY='bbbb'
-# ADV CONFIGURATION #########################################################
-SITE_PACKAGE_PATH = ''
-#############################################################################
-# code for configuration set in your home folder
-if USE_GLOBAL_CONFIG:
-    import os
+def parse_env_list(val):
     try:
-        user_path = os.path.expanduser("~")
-        config_path = os.path.join(user_path, "vars.py")
-        exec(open(config_path).read())
+        return ast.literal_eval(val)
+    except Exception:
+        return []
 
-    except Exception as e:
-        print("error: {}".format(e))
-        pass
+URL_KEYWORD_EXCEPTIONS = parse_env_list(os.environ.get('URL_KEYWORD_EXCEPTIONS', '[]'))
+ARCHIVE_DOWNLOADED = parse_env_bool(os.environ.get('ARCHIVE_DOWNLOADED', 'False'))
+TODOIST_PROJECT_ID = os.environ.get('TODOIST_PROJECT_ID', '')
+TODOIST_API_KEY = os.environ.get('TODOIST_API_KEY', '')
+SITE_PACKAGE_PATH = ''
 #############################################################################
 from calibre.constants import config_dir
 from calibre.utils.config import JSONConfig
@@ -55,16 +51,18 @@ from urllib.parse import urlparse
 import sys
 SITE_PACKAGE_PATH = ''
 
+
 import errno
 import json
 import mechanize
 import operator
+import re
 from datetime import datetime
 
 try:
-        from urllib.error import HTTPError
+    from urllib.error import HTTPError
 except ImportError:
-        from urllib2 import HTTPError
+    from urllib2 import HTTPError
 
 __license__ = 'GPL v3'
 __copyright__ = '2025, ARG'
@@ -258,8 +256,13 @@ class Todoist2ebook(BasicNewsRecipe):
                 """
                 try:
                         from calibre.ebooks import calibre_cover
-                        title = self.title if isinstance(self.title, unicode) else \
-                                self.title.decode('utf-8', 'replace')
+                        # Python 2/3 compatibility for unicode
+                        try:
+                            unicode_type = unicode
+                        except NameError:
+                            unicode_type = str
+                        title = self.title if isinstance(self.title, unicode_type) else \
+                                self.title.encode('utf-8', 'replace').decode('utf-8', 'replace')
                         # print('>> title', title, file=sys.stderr)
                         date = strftime(self.timefmt)
                         time = strftime('%a %d %b %Y %-H:%M')
