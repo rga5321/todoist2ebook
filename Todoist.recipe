@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 # vim:ft=python tabstop=8 expandtab shiftwidth=4 softtabstop=4
 from __future__ import print_function
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 """
+0.0.3: Parameters in recipe_specific_options
 0.0.2: Calibre footer with the source URL. QR points to the article URL.
 0.0.1: First working version
 
+# Calibre parameters
+
+Input them in command line as this example: ebook-convert Todoist.recipe output.epub --recipe-specific-option=ARCHIVE_DOWNLOADED:False --recipe-specific-option=TODOIST_PROJECT_ID:YOUR_PROJECT_ID --recipe-specific-option=TODOIST_API_KEY:YOUR_API_KEY --recipe-specific-option=URL_KEYWORD_EXCEPTIONS:jotdown,elpais.com/gastronomia
+
 
 **URL_KEYWORD_EXCEPTIONS** (list of keywords such as, if the URL of the article contains any keyword, then the plugin will ignore the article)
-
 
 **ARCHIVE_DOWNLOADED** (True or False) do you want to archive articles after fetching
 
@@ -22,22 +26,20 @@ __version__ = '0.0.2'
 """
 # CONFIGURATION ###########################################################
 
-import os
 import ast
-# Load configuration from environment variables set by main.py
+
+# Aux funcion. String to boolean
 def parse_env_bool(val):
     return str(val).strip().lower() in ("true", "1", "yes")
 
+
+# Aux funcion. comma separated String to List
 def parse_env_list(val):
     try:
         return ast.literal_eval(val)
     except Exception:
         return []
 
-URL_KEYWORD_EXCEPTIONS = parse_env_list(os.environ.get('URL_KEYWORD_EXCEPTIONS', '[]'))
-ARCHIVE_DOWNLOADED = parse_env_bool(os.environ.get('ARCHIVE_DOWNLOADED', 'False'))
-TODOIST_PROJECT_ID = os.environ.get('TODOIST_PROJECT_ID', '')
-TODOIST_API_KEY = os.environ.get('TODOIST_API_KEY', '')
 SITE_PACKAGE_PATH = ''
 #############################################################################
 
@@ -58,9 +60,29 @@ from datetime import datetime
 
 __license__ = 'GPL v3'
 __copyright__ = '2025, ARG'
-
-
+    
 class Todoist2ebook(BasicNewsRecipe):
+
+        recipe_specific_options = {
+                'ARCHIVE_DOWNLOADED': {
+                        'short': 'Mark as read',
+                        'long':  'Mark as read',
+                        'default': False,
+                },
+                'TODOIST_PROJECT_ID': {
+                        'short': 'Proyect ID',
+                        'long':  'Proyect ID'
+                },
+                'TODOIST_API_KEY': {
+                        'short': 'API key',
+                        'long':  'API KEY'
+                },
+                'URL_KEYWORD_EXCEPTIONS': {
+                        'short': 'URL keyword exceptions',
+                        'long':  'List of keywords to ignore articles, e.g. ["example.com", "ignoreme.com"]',
+                        'default' : []
+                }
+                }
 
         __author__ = 'ARG'
         description = 'prueba'
@@ -68,13 +90,8 @@ class Todoist2ebook(BasicNewsRecipe):
         category = 'info, custom, Todoist'
 
         # User-configurable settings -----------------------------------------------
-        archive_downloaded = ARCHIVE_DOWNLOADED
+        
         series_name = 'Todoist'
-
-
-        todoist_project_id =TODOIST_PROJECT_ID
-        todoist_api_key = TODOIST_API_KEY
-
         publication_type = 'magazine'
         title = "Todoist"
         # timefmt = '' # uncomment to remove date from the filenames, if commented then you will get something like `Todoist [Wed, 13 May 2020]`
@@ -95,6 +112,26 @@ class Todoist2ebook(BasicNewsRecipe):
         
         extra_css = '.touchscreen_navbar {display: none;}'
         extra_css = '.calibre_navbar { visibility: hidden; }'
+
+
+        def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+                # Init optional configuration parameters
+                self.archive_downloaded = parse_env_bool(self.recipe_specific_options['ARCHIVE_DOWNLOADED'])
+                self.keyword_exceptions = parse_env_list(self.recipe_specific_options['URL_KEYWORD_EXCEPTIONS'])
+
+                # Init mandatory configuration parameters
+                if 'TODOIST_PROJECT_ID' in self.recipe_specific_options and self.recipe_specific_options['TODOIST_PROJECT_ID']:
+                        self.todoist_project_id = self.recipe_specific_options['TODOIST_PROJECT_ID']
+                else:
+                        self.abort_recipe_processing('TODOIST_PROJECT_ID mandatory parameter missing')   
+
+                if 'TODOIST_API_KEY' in self.recipe_specific_options and self.recipe_specific_options['TODOIST_API_KEY']:
+                        self.todoist_api_key = self.recipe_specific_options['TODOIST_API_KEY']
+                else:
+                        self.abort_recipe_processing('TODOIST_API_KEY mandatory parameter missing') 
+
 
         def parse_index(self):
 
@@ -133,7 +170,7 @@ class Todoist2ebook(BasicNewsRecipe):
                     for item in articles_todoist:
   
                         # If the URL contains any URL_KEYWORD_EXCEPTIONS, ignore article
-                        if any(pattern in item['url'] for pattern in URL_KEYWORD_EXCEPTIONS):
+                        if any(pattern in item['url'] for pattern in self.keyword_exceptions):
                             print("Ignoring article due to keyword patterns:" + item['url'])
                             del item
                         else:

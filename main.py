@@ -49,7 +49,15 @@ env['TODOIST_PROJECT_ID'] = os.getenv('TODOIST_PROJECT_ID', "")
 env['TODOIST_API_KEY'] = os.getenv('TODOIST_API_KEY', "")
 
 # Building the epub with the recipe, passing env vars
-subprocess.run(['ebook-convert','Todoist.recipe',file_name], env=env)
+subprocess.run([
+    'ebook-convert',
+    'Todoist.recipe',
+    file_name,
+    f'--recipe-specific-option=URL_KEYWORD_EXCEPTIONS:{env["URL_KEYWORD_EXCEPTIONS"]}',
+    f'--recipe-specific-option=ARCHIVE_DOWNLOADED:{env["ARCHIVE_DOWNLOADED"]}',
+    f'--recipe-specific-option=TODOIST_PROJECT_ID:{env["TODOIST_PROJECT_ID"]}',
+    f'--recipe-specific-option=TODOIST_API_KEY:{env["TODOIST_API_KEY"]}'
+], env=env)
 
 # Añadir QR a cada artículo del epub
 from epub_qr import add_qr_to_epub
