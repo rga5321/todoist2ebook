@@ -194,4 +194,5 @@ cython_debug/
 .cursorindexingignore
 
 *.epub
+*.mobi
 env.local

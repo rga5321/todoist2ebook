@@ -40,18 +40,11 @@ def add_qr_to_epub(epub_path):
         with open(html_file, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
 
-        # Try to find the article URL (look for <a> with rel="alternate" or the first external link)
+        # Buscar el enlace <a rel="calibre-downloaded-from">
         url = None
-        a_tags = soup.find_all('a', href=True)
-        for a in a_tags:
-            if a.get('rel') == ['alternate']:
-                url = a['href']
-                break
-        if not url:
-            for a in a_tags:
-                if a['href'].startswith('http'):
-                    url = a['href']
-                    break
+        a_tag = soup.find('a', href=True, rel='calibre-downloaded-from')
+        if a_tag:
+            url = a_tag['href']
         if not url:
             continue  # No URL found, skip this file
 
@@ -74,11 +67,7 @@ def add_qr_to_epub(epub_path):
         # Add "Fuente: $url" and the <img> tag at the end of the <body>
         body = soup.find('body')
         if body:
-            # Insert Fuente: $url before the QR code
-            fuente_tag = soup.new_tag('p')
-            fuente_html = f'<b><u>Fuente</u></b>: <a href="{url}">{url}</a>'
-            fuente_tag.append(BeautifulSoup(fuente_html, 'html.parser'))
-            body.append(fuente_tag)
+            # Insert QR code
             img_tag = soup.new_tag('img', src=os.path.relpath(img_path, os.path.dirname(html_file)))
             img_tag['alt'] = 'QR to article URL'
             body.append(img_tag)
