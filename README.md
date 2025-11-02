@@ -7,7 +7,14 @@ Simple python script and calibre recipe to build an epub with your saved article
 
 ![Index](img/article.png)
 
-## Usage (standalone, recommended)
+## How to use it
+
+You have three options:
+- Run the script using python
+- Launch it from calibre
+- Launch it using Docker (experimental
+
+### Usage (standalone, recommended)
 
 - Clone the project
 - Create a venv ```python3 -m venv .venv```
@@ -18,7 +25,7 @@ Simple python script and calibre recipe to build an epub with your saved article
 - Run the script ```(.venv) ~/todoist2ebook$ python3 main.py```
 
 
-## Parameters (.env)
+#### Parameters (.env)
 
 - `URL_KEYWORD_EXCEPTIONS` = keywords in an URL that will result in its exclusion (example: `['jotdown','gastronomia']`)
 - `ARCHIVE_DOWNLOADED` = True | False => Should the script close the tasks after retrieving the urls
@@ -28,7 +35,7 @@ Simple python script and calibre recipe to build an epub with your saved article
 - `SMTP_*` => Your server credentials
 - `DESTINATION_EMAIL` => Where should the script send the epub
 
-## Output
+#### Output
 
 You should see something like:
 
@@ -99,7 +106,13 @@ Output saved to   /home/xxxx/todoist2ebook/todoist-15-06-2025.epub
 2025-06-15 17:11:16,588 -  INFO-  End
 ```
 
-## Usage with Docker (experimental)
+
+
+### Calibre
+
+Since calibre v8.9, the recipe is avalaible on calibre. Just click "fetch news", search the "Todoist" recipe, and fill the parameters
+
+### Usage with Docker (experimental)
 
 - Download the docker/env.local.sample to env.local and populate values
 - In the same folder where env.local is, run ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-arm64:latest``` or ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-amd64:latest``` depending on your architecture
