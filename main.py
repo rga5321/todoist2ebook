@@ -11,7 +11,9 @@ import email.utils
 import mimetypes
 
 from dotenv import load_dotenv
+from epub_qr import add_qr_to_epub
 
+# Load environment variables
 load_dotenv()
 
 logging.basicConfig(
@@ -30,7 +32,7 @@ SMTP_FROM = os.getenv("SMTP_FROM")
 DESTINATION_EMAIL = os.getenv("DESTINATION_EMAIL")
 
 # File naming
-output = subprocess.check_output(["date", "+%d-%m-%Y-%H-%M-%S"])
+output = subprocess.check_output(["date", "+%Y-%m-%d_%H%M"])
 file_stamp = bytes.decode(output)
 file_name = "todoist-" + file_stamp.strip() + ".epub"
 logging.info("File name: " + file_name)
@@ -67,11 +69,11 @@ subprocess.run(
     env=env,
 )
 
-# Añadir QR a cada artículo del epub
-from epub_qr import add_qr_to_epub
-
+# Add QR to every article in epub file
+logging.info("Adding QR codes to EPUB")
 add_qr_to_epub(file_name)
 
+# Send the file via email if configured
 if SEND_EMAIL:
     logging.info("Sending email to: " + DESTINATION_EMAIL)
     # Send the file via email
