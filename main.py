@@ -83,7 +83,7 @@ if SEND_EMAIL:
         mime_type = "application/octet-stream"
     maintype, subtype = mime_type.split("/", 1)
 
-    # Crear mensaje
+    # Create message
     msg = EmailMessage()
     msg["From"] = SMTP_FROM
     msg["To"] = DESTINATION_EMAIL
@@ -93,22 +93,22 @@ if SEND_EMAIL:
     msg["MIME-Version"] = "1.0"
     msg["Content-Transfer-Encoding"] = "base64"
 
-    # Cuerpo del mensaje
+    # Message body
     msg.set_content(
         "This is the body of the email. The attached file is the latest Todoist tasks in epub format."
     )
 
-    # Adjuntar archivo
+    # Attach file
     with open(file_name, "rb") as f:
         file_data = f.read()
         msg.add_attachment(
             file_data, maintype=maintype, subtype=subtype, filename=file_name
         )
 
-    # Enviar email
+    # Send email
     context = ssl.create_default_context()
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-        # server.set_debuglevel(1)  # Muestra el diálogo SMTP
+        # server.set_debuglevel(1)  # Show SMTP dialog
         server.starttls(context=context)
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)

@@ -15,7 +15,7 @@ def add_qr_to_epub(epub_path):
       - Searches for the article's URL (prefers <a rel="alternate">, otherwise first external link)
       - Generates a QR code image pointing to that URL
       - Appends a paragraph at the end of the <body> with:
-          <b><u>Fuente</u></b>: <a href="URL">URL</a>
+          <b><u>Source</u></b>: <a href="URL">URL</a>
       - Appends the QR code image after the source paragraph
 
     The EPUB is then repacked, replacing the original file.
@@ -40,7 +40,7 @@ def add_qr_to_epub(epub_path):
         with open(html_file, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
 
-        # Buscar el enlace <a rel="calibre-downloaded-from">
+        # Search for the link <a rel="calibre-downloaded-from">
         url = None
         a_tag = soup.find('a', href=True, rel='calibre-downloaded-from')
         if a_tag:
@@ -64,7 +64,7 @@ def add_qr_to_epub(epub_path):
         with open(img_path, 'wb') as img_file:
             img_file.write(img_data)
 
-        # Add "Fuente: $url" and the <img> tag at the end of the <body>
+        # Add "Source: $url" and the <img> tag at the end of the <body>
         body = soup.find('body')
         if body:
             # Insert QR code
