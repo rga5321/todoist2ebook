@@ -28,6 +28,7 @@ You have three options:
 #### Parameters (.env)
 
 - `URL_KEYWORD_EXCEPTIONS` = keywords in an URL that will result in its exclusion (example: `['jotdown','gastronomia']`)
+- `CALIBRE_BINARY` = Path to the calibre `ebook-convert` binary (default: `ebook-convert`). Useful if you need to use a specific version (e.g. an older version due to bugs in the latest one).
 - `ARCHIVE_DOWNLOADED` = True | False => Should the script close the tasks after retrieving the urls
 - `TODOIST_PROJECT_ID` => Todoist project where the URLs will be recovered
 - `TODOIST_API_KEY` => Your api KEY
@@ -42,6 +43,7 @@ You should see something like:
 ```
 2025-06-15 17:11:05,958 -  INFO-  Start
 2025-06-15 17:11:05,959 -  INFO-  File name: todoist-15-06-2025.epub
+2025-06-15 17:11:06,100 -  INFO-  Calibre version: ebook-convert (calibre 8.11.1)
 Conversion options changed from defaults:
   test: None
 1% Converting input to HTML...

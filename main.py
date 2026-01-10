@@ -23,6 +23,8 @@ logging.info("Start")
 
 SEND_EMAIL = os.getenv("SEND_EMAIL", "false").strip().lower() in ("True", "true")
 
+CALIBRE_BINARY = os.getenv("CALIBRE_BINARY", "ebook-convert")
+
 SMTP_SERVER = os.getenv("SMTP_SERVER")
 SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_USER = os.getenv("SMTP_USER")
@@ -55,10 +57,18 @@ env["ARCHIVE_DOWNLOADED"] = os.getenv("ARCHIVE_DOWNLOADED", "False")
 env["TODOIST_PROJECT_ID"] = os.getenv("TODOIST_PROJECT_ID", "")
 env["TODOIST_API_KEY"] = os.getenv("TODOIST_API_KEY", "")
 
+
+# Check calibre version
+try:
+    version_output = subprocess.check_output([CALIBRE_BINARY, "--version"]).decode("utf-8").strip()
+    logging.info(f"Calibre version: {version_output}")
+except Exception as e:
+    logging.error(f"Failed to get calibre version: {e}")
+
 # Building the epub with the recipe, passing env vars
 subprocess.run(
     [
-        "ebook-convert",
+        CALIBRE_BINARY,
         "Todoist.recipe",
         file_name,
         f'--recipe-specific-option=URL_KEYWORD_EXCEPTIONS:{env["URL_KEYWORD_EXCEPTIONS"]}',
