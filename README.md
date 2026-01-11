@@ -19,10 +19,20 @@ You have three options:
 - Clone the project
 - Create a venv ```python3 -m venv .venv```
 - Activate it ```source .venv/bin/activate```
-- Install dependencies for QR and dotenv:  
-  ```pip3 install python-dotenv qrcode pillow beautifulsoup4```
+- Install dependencies:  
+  ```pip3 install -r requirements.txt```
 - Copy the .env sample and populate it ```cp .env.sample .env```
 - Run the script ```(.venv) ~/todoist2ebook$ python3 main.py```
+
+#### Running Tests
+
+This project uses `pytest` for automated testing.
+
+1. Ensure dependencies are installed (including `pytest` and `pytest-mock` which are in `requirements.txt`).
+2. Run tests:
+   ```bash
+   pytest tests/
+   ```
 
 
 #### Parameters (.env)
