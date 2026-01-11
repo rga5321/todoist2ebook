@@ -74,6 +74,11 @@ class Todoist2ebook(BasicNewsRecipe):
             'long': 'List of keywords to ignore articles, e.g. ["example.com", "ignoreme.com"]',
             'default': [],
         },
+        'TODOIST_API_URL': {
+            'short': 'API URL',
+            'long': 'URL of the Todoist API (mockable)',
+            'default': 'https://api.todoist.com',
+        },
     }
 
     __author__ = 'ARG'
@@ -114,6 +119,8 @@ class Todoist2ebook(BasicNewsRecipe):
         self.keyword_exceptions = parse_env_list(
             self.recipe_specific_options['URL_KEYWORD_EXCEPTIONS']
         )
+        
+        self.todoist_api_url = self.recipe_specific_options.get('TODOIST_API_URL', 'https://api.todoist.com')
 
         # Init mandatory configuration parameters
         if (
@@ -137,7 +144,7 @@ class Todoist2ebook(BasicNewsRecipe):
         articles = []
         section_dict = {}  # dictionary with the domains and its articles.
 
-        url = f'https://api.todoist.com/rest/v2/tasks?project_id={self.todoist_project_id}'
+        url = f'{self.todoist_api_url}/rest/v2/tasks?project_id={self.todoist_project_id}'
         headers = {'Authorization': f'Bearer {self.todoist_api_key}'}
         request = mechanize.Request(url, headers=headers)
 
