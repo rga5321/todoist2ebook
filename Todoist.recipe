@@ -155,12 +155,24 @@ class Todoist2ebook(BasicNewsRecipe):
         tasks = json.loads(data)
         articles_todoist = []
 
-        url_regex = re.compile(r'\[([^\]]+)\]\(\s*(https?://[^\s\)]+)\s*\)')
+        url_regex_md = re.compile(r'\[([^\]]+)\]\(\s*(https?://[^\s\)]+)\s*\)')
+        url_regex_raw = re.compile(r'(https?://[^\s]+)')
+
         for task in tasks:
-            match = url_regex.search(task['content'])
+            title = None
+            url = None
+
+            match = url_regex_md.search(task['content'])
             if match:
                 title = match.group(1).strip()
                 url = match.group(2).strip()
+            else:
+                match = url_regex_raw.search(task['content'])
+                if match:
+                    url = match.group(1).strip()
+                    title = url
+
+            if url:
                 date_added = task.get('created_at', datetime.now().isoformat())
                 articles_todoist.append(
                     {
