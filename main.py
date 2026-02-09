@@ -118,9 +118,36 @@ def main():
     logging.info("Adding QR codes to EPUB")
     add_qr_to_epub(file_name)
 
-    # Send the file via email if configured
+    # EPUB to MOBI to EPUB conversion round-trip
+    # Amazon's "Send to Kindle" service has problematic behavior with native EPUB files.
+    # Converting EPUB → MOBI → EPUB normalizes the ebook structure and ensures better
+    # compatibility and formatting when processed by Amazon's Kindle delivery service.
+    
+    # Convert EPUB to MOBI
+    mobi_file_name = file_name.replace('.epub', '.mobi')
+    logging.info(f"Converting EPUB to MOBI: {mobi_file_name}")
+    convert_cmd = [CALIBRE_BINARY, file_name, mobi_file_name]
+    try:
+        subprocess.run(convert_cmd, check=True)
+        logging.info(f"Successfully converted to MOBI: {mobi_file_name}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to convert EPUB to MOBI: {e}")
+        return
+
+    # Convert MOBI back to EPUB
+    final_epub_file_name = file_name.replace('.epub', '-final.epub')
+    logging.info(f"Converting MOBI back to EPUB: {final_epub_file_name}")
+    convert_back_cmd = [CALIBRE_BINARY, mobi_file_name, final_epub_file_name]
+    try:
+        subprocess.run(convert_back_cmd, check=True)
+        logging.info(f"Successfully converted back to EPUB: {final_epub_file_name}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to convert MOBI to EPUB: {e}")
+        return
+
+    # Send the final EPUB file via email if configured
     if SEND_EMAIL:
-        send_email(file_name, smtp_conf, DESTINATION_EMAIL)
+        send_email(final_epub_file_name, smtp_conf, DESTINATION_EMAIL)
     
     logging.info("End")
 

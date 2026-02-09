@@ -46,6 +46,27 @@ This project uses `pytest` for automated testing.
 - `SMTP_*` => Your server credentials
 - `DESTINATION_EMAIL` => Where should the script send the epub
 
+#### Workflow and File Conversions
+
+The script performs the following conversion steps:
+
+1. **EPUB Generation** - Creates an EPUB file from your Todoist saved articles
+2. **QR Code Addition** - Adds QR codes and source links to each article
+3. **EPUB to MOBI Conversion** - Converts the EPUB to MOBI format
+4. **MOBI back to EPUB Conversion** - Converts the MOBI back to EPUB format
+5. **Email Delivery** - Sends the final EPUB to your Kindle email
+
+**Why the round-trip conversion (EPUB → MOBI → EPUB)?**
+
+Amazon's "Send to Kindle" service has problematic behavior with native EPUB files. Converting the EPUB to MOBI and back ensures better compatibility and formatting when the file is processed by Amazon's Kindle delivery service. This round-trip conversion normalizes the ebook structure and improves the reliability of content delivery to your Kindle device.
+
+**Generated Files**
+
+All generated files are retained for testing and verification:
+- `todoist-{timestamp}.epub` - Original EPUB with QR codes
+- `todoist-{timestamp}.mobi` - MOBI conversion
+- `todoist-{timestamp}-final.epub` - Final EPUB after MOBI round-trip (sent to Kindle)
+
 #### Output
 
 You should see something like:
