@@ -50,94 +50,51 @@ This project uses `pytest` for automated testing.
 
 The script performs the following conversion steps:
 
-1. **EPUB Generation** - Creates an EPUB file from your Todoist saved articles
-2. **QR Code Addition** - Adds QR codes and source links to each article
-3. **EPUB to MOBI Conversion** - Converts the EPUB to MOBI format
-4. **MOBI back to EPUB Conversion** - Converts the MOBI back to EPUB format
-5. **Email Delivery** - Sends the final EPUB to your Kindle email
+1. **Task Retrieval (API v1)** - Fetches tasks using the modern Todoist unified API (v1), replacing the deprecated REST API.
+2. **EPUB Generation** - Creates an initial EPUB file from your Todoist saved articles (`-original.epub`).
+3. **QR Code Addition** - Adds QR codes and source links to each article.
+4. **Backup Generation** - Creates a backup version by converting the original EPUB to MOBI and back to EPUB (`-backup.epub`).
+5. **Dual Email Delivery** - Sends **both** the original and backup files to your Kindle email.
 
-**Why the round-trip conversion (EPUB → MOBI → EPUB)?**
+**Why send two files?**
 
-Amazon's "Send to Kindle" service has problematic behavior with native EPUB files. Converting the EPUB to MOBI and back ensures better compatibility and formatting when the file is processed by Amazon's Kindle delivery service. This round-trip conversion normalizes the ebook structure and improves the reliability of content delivery to your Kindle device.
+*   **Original File (`-original.epub`)**: Preserves the best possible formatting and styling. However, Amazon's "Send to Kindle" service can be finicky and sometimes rejects complex EPUBs or processes them incorrectly.
+*   **Backup File (`-backup.epub`)**: The round-trip conversion (EPUB → MOBI → EPUB) "normalizes" the file structure. While it might look slightly less polished, it is highly reliable and almost always accepted by Amazon's service. By sending both, you ensure you get at least one readable copy, and usually the best-looking one too.
 
 **Generated Files**
 
 All generated files are retained for testing and verification:
-- `todoist-{timestamp}.epub` - Original EPUB with QR codes
-- `todoist-{timestamp}.mobi` - MOBI conversion
-- `todoist-{timestamp}-final.epub` - Final EPUB after MOBI round-trip (sent to Kindle)
+- `todoist-{timestamp}-original.epub` - High-quality original EPUB (sent to Kindle)
+- `todoist-{timestamp}-original.mobi` - Intermediate MOBI conversion
+- `todoist-{timestamp}-backup.epub` - Compatibility-focused backup EPUB (sent to Kindle)
 
 #### Output
-
-You should see something like:
-
-```
-2025-06-15 17:11:05,958 -  INFO-  Start
-2025-06-15 17:11:05,959 -  INFO-  File name: todoist-15-06-2025.epub
-2025-06-15 17:11:06,100 -  INFO-  Calibre version: ebook-convert (calibre 8.11.1)
-Conversion options changed from defaults:
-  test: None
-1% Converting input to HTML...
-InputFormatPlugin: Recipe Input running
-Using custom recipe
-Using user agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
-1% Fetching feeds...
-Ignoring article due to keyword patterns:https://XXXXXXX
-Adding article: https://www.enriquedans.com/2025/06/meta-compania-tecnologica-o-asociacion-de-malhechores.html to section: enriquedans.com
-Adding article: https://www.genbeta.com/a-fondo/dinero-carcel-responsable-vlc-explica-que-siempre-sera-gratis-anuncios to section: genbeta.com
-Adding article: https://www.honest-broker.com/p/an-ugly-new-marketing-strategy-is to section: honest-broker.com
-1% Got feeds from index page
-1% Trying to download cover...
-34% Downloading cover from https://raw.githubusercontent.com/alvaroreig/todoist2ebook/master/img/todoist-cover.png
-1% Generating masthead...
-34% Masthead image downloaded
-1% Starting download [10 threads]...
-12% Article downloaded: VLC rechazó millones de dólares en publicidad: su responsable explica por qué siempre será gratis y sin anuncios
-23% Article downloaded: An Ugly New Marketing Strategy Is Driving Me Nuts (and You Too)
-34% Article downloaded: Meta: ¿compañía tecnológica o asociación de malhechores?
-34% Feeds downloaded to /tmp/calibre-43oq_w_u/5nmadbbf_plumber/index.html
-34% Download finished
-Task 9258921684 corectly closed.
-Task 9258925497 corectly closed.
-Task 9258446866 corectly closed.
-Parsing all content...
-Forcing feed_0/article_0/index.html into XHTML namespace
-Forcing feed_1/article_0/index.html into XHTML namespace
-Forcing feed_2/article_0/index.html into XHTML namespace
-Forcing index.html into XHTML namespace
-Referenced file 'feed_3/index.html' not found
-34% Running transforms on e-book...
-Merging user specified metadata...
-Detecting structure...
-Flattening CSS and remapping font sizes...
-Source base font size is 12.00000pt
-Removing fake margins...
-Cleaning up manifest...
-Trimming unused files from manifest...
-Creating EPUB Output...
-67% Running EPUB Output plugin
-Found non-unique filenames, renaming to support broken EPUB readers like FBReader, Aldiko and Stanza...
-Splitting markup on page breaks and flow limits, if any...
-	Looking for large trees in feed_0/index.html...
-	No large trees found
-	Looking for large trees in feed_0/article_0/index_u1.html...
-	No large trees found
-	Looking for large trees in feed_1/index_u2.html...
-	No large trees found
-	Looking for large trees in feed_1/article_0/index_u3.html...
-	No large trees found
-	Looking for large trees in feed_2/index_u4.html...
-	No large trees found
-	Looking for large trees in feed_2/article_0/index_u5.html...
-	No large trees found
-	Looking for large trees in index_u6.html...
-	No large trees found
-The cover image has an id != "cover". Renaming to work around bug in Nook Color
-EPUB output written to /home/xxxx/todoist2ebook/todoist-15-06-2025.epub
-Output saved to   /home/xxxx/todoist2ebook/todoist-15-06-2025.epub
-2025-06-15 17:11:11,884 -  INFO-  Sending email to: xxxxxxx@kindle.com
-2025-06-15 17:11:16,588 -  INFO-  End
-```
+ 
+ You should see something like:
+ 
+ ```
+ 2025-06-15 17:11:05,958 -  INFO-  Start
+ 2025-06-15 17:11:05,959 -  INFO-  File name: todoist-2025-06-15_1711-original.epub
+ 2025-06-15 17:11:06,100 -  INFO-  Calibre version: ebook-convert (calibre 7.0.0)
+ Conversion options changed from defaults:
+   test: None
+ 1% Converting input to HTML...
+ ...
+ 34% Download finished
+ ...
+ EPUB output written to /home/xxxx/todoist2ebook/todoist-2025-06-15_1711-original.epub
+ Output saved to   /home/xxxx/todoist2ebook/todoist-2025-06-15_1711-original.epub
+ 2025-06-15 17:11:11,500 -  INFO-  Adding QR codes to EPUB
+ 2025-06-15 17:11:11,600 -  INFO-  Converting EPUB to MOBI: todoist-2025-06-15_1711-original.mobi
+ 2025-06-15 17:11:15,000 -  INFO-  Successfully converted to MOBI: todoist-2025-06-15_1711-original.mobi
+ 2025-06-15 17:11:15,100 -  INFO-  Converting MOBI back to EPUB: todoist-2025-06-15_1711-backup.epub
+ 2025-06-15 17:11:18,200 -  INFO-  Successfully converted back to EPUB: todoist-2025-06-15_1711-backup.epub
+ 2025-06-15 17:11:18,300 -  INFO-  Sending email to: xxxxxxx@kindle.com
+ 2025-06-15 17:11:19,500 -  INFO-  Email sent successfully to xxxxxxx@kindle.com
+ 2025-06-15 17:11:19,600 -  INFO-  Sending email to: xxxxxxx@kindle.com
+ 2025-06-15 17:11:20,800 -  INFO-  Email sent successfully to xxxxxxx@kindle.com
+ 2025-06-15 17:11:21,000 -  INFO-  End
+ ```
 
 
 

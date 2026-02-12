@@ -80,7 +80,7 @@ def main():
     }
     DESTINATION_EMAIL = os.getenv("DESTINATION_EMAIL")
 
-    file_name = f"todoist-{subprocess.check_output(['date', '+%Y-%m-%d_%H%M']).decode('utf-8').strip()}.epub"
+    file_name = f"todoist-{subprocess.check_output(['date', '+%Y-%m-%d_%H%M']).decode('utf-8').strip()}-original.epub"
     logging.info("File name: " + file_name)
 
     # Load .env variables for recipe
@@ -135,19 +135,20 @@ def main():
         return
 
     # Convert MOBI back to EPUB
-    final_epub_file_name = file_name.replace('.epub', '-final.epub')
-    logging.info(f"Converting MOBI back to EPUB: {final_epub_file_name}")
-    convert_back_cmd = [CALIBRE_BINARY, mobi_file_name, final_epub_file_name]
+    backup_epub_file_name = file_name.replace('-original.epub', '-backup.epub')
+    logging.info(f"Converting MOBI back to EPUB: {backup_epub_file_name}")
+    convert_back_cmd = [CALIBRE_BINARY, mobi_file_name, backup_epub_file_name]
     try:
         subprocess.run(convert_back_cmd, check=True)
-        logging.info(f"Successfully converted back to EPUB: {final_epub_file_name}")
+        logging.info(f"Successfully converted back to EPUB: {backup_epub_file_name}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to convert MOBI to EPUB: {e}")
         return
 
     # Send the final EPUB file via email if configured
     if SEND_EMAIL:
-        send_email(final_epub_file_name, smtp_conf, DESTINATION_EMAIL)
+        send_email(file_name, smtp_conf, DESTINATION_EMAIL)
+        send_email(backup_epub_file_name, smtp_conf, DESTINATION_EMAIL)
     
     logging.info("End")
 

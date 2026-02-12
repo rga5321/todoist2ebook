@@ -85,7 +85,7 @@ def test_todoist2ebook_init():
 
 class MockTodoistHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if '/rest/v2/tasks' in self.path:
+        if '/api/v1/tasks' in self.path:
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
@@ -98,7 +98,8 @@ class MockTodoistHandler(http.server.BaseHTTPRequestHandler):
                     'created_at': '2026-01-10T12:00:00Z'
                 }
             ]
-            self.wfile.write(json.dumps(tasks).encode('utf-8'))
+            response_data = {'results': tasks}
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
         elif 'close' in self.path:
              self.send_response(204)
              self.end_headers()
