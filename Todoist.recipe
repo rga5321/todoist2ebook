@@ -14,9 +14,10 @@ import mechanize
 
 from calibre.web.feeds.news import BasicNewsRecipe
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 '''
+0.0.4: Migrating to new Todoist unified API v1, dual sending of original and backup epub files.
 0.0.3: Parameters in recipe_specific_options
 0.0.2: Calibre footer with the source URL. QR points to the article URL.
 0.0.1: First working version
