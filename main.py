@@ -17,9 +17,7 @@ import ast
 # Load environment variables
 load_dotenv()
 
-
-
-# Global functions
+# Aux function to clean env vars, stripping comments and quotes
 def clean_env_var(val):
     if not val:
         return val
