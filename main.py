@@ -20,6 +20,12 @@ load_dotenv()
 
 
 # Global functions
+def clean_env_var(val):
+    if not val:
+        return val
+    # Strip everything after a '#' to handle inline comments, then strip quotes/spaces
+    return str(val).split("#", 1)[0].strip(" \"'")
+
 def parse_env_list(val):
     try:
         return ast.literal_eval(val)
@@ -68,27 +74,27 @@ def main():
     )
     logging.info("Start")
 
-    SEND_EMAIL = os.getenv("SEND_EMAIL", "false").strip().lower() in ("True", "true")
-    CALIBRE_BINARY = os.getenv("CALIBRE_BINARY", "ebook-convert")
+    SEND_EMAIL = clean_env_var(os.getenv("SEND_EMAIL", "false")).lower() in ("true", "1", "yes")
+    CALIBRE_BINARY = clean_env_var(os.getenv("CALIBRE_BINARY", "ebook-convert"))
     
     smtp_conf = {
-        "SERVER": os.getenv("SMTP_SERVER"),
-        "PORT": os.getenv("SMTP_PORT"),
-        "USER": os.getenv("SMTP_USER"),
-        "PASSWORD": os.getenv("SMTP_PASSWORD"),
-        "FROM": os.getenv("SMTP_FROM"),
+        "SERVER": clean_env_var(os.getenv("SMTP_SERVER")),
+        "PORT": clean_env_var(os.getenv("SMTP_PORT")),
+        "USER": clean_env_var(os.getenv("SMTP_USER")),
+        "PASSWORD": clean_env_var(os.getenv("SMTP_PASSWORD")),
+        "FROM": clean_env_var(os.getenv("SMTP_FROM")),
     }
-    DESTINATION_EMAIL = os.getenv("DESTINATION_EMAIL")
+    DESTINATION_EMAIL = clean_env_var(os.getenv("DESTINATION_EMAIL"))
 
     file_name = f"todoist-{subprocess.check_output(['date', '+%Y-%m-%d_%H%M']).decode('utf-8').strip()}-original.epub"
     logging.info("File name: " + file_name)
 
     # Load .env variables for recipe
     env = os.environ.copy()
-    env["URL_KEYWORD_EXCEPTIONS"] = os.getenv("URL_KEYWORD_EXCEPTIONS", "[]")
-    env["ARCHIVE_DOWNLOADED"] = os.getenv("ARCHIVE_DOWNLOADED", "False")
-    env["TODOIST_PROJECT_ID"] = os.getenv("TODOIST_PROJECT_ID", "")
-    env["TODOIST_API_KEY"] = os.getenv("TODOIST_API_KEY", "")
+    env["URL_KEYWORD_EXCEPTIONS"] = os.getenv("URL_KEYWORD_EXCEPTIONS", "[]") # Handled by ast.literal_eval
+    env["ARCHIVE_DOWNLOADED"] = clean_env_var(os.getenv("ARCHIVE_DOWNLOADED", "False"))
+    env["TODOIST_PROJECT_ID"] = clean_env_var(os.getenv("TODOIST_PROJECT_ID", ""))
+    env["TODOIST_API_KEY"] = clean_env_var(os.getenv("TODOIST_API_KEY", ""))
 
     # Check calibre version
     try:

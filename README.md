@@ -102,9 +102,20 @@ All generated files are retained for testing and verification:
 
 Since calibre v8.9, the recipe is avalaible on calibre. Just click "fetch news", search the "Todoist" recipe, and fill the parameters
 
-### Usage with Docker (experimental)
+### Usage with Docker
 
-- Download the docker/env.local.sample to env.local and populate values
-- In the same folder where env.local is, run ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-arm64:latest``` or ```docker run --rm -v "$PWD/env.local:/home/appuser/env.local" rga5321/todoist2ebook-amd64:latest``` depending on your architecture
+- Build the image from the project root directory:
+  ```bash
+  docker build -t todoist2ebook -f docker/Dockerfile .
+  ```
+- Create a `.env` file based on `.env.sample`.
+- Run the container, injecting environment variables via the `--env-file` parameter:
+  ```bash
+  docker run --rm --env-file .env todoist2ebook
+  ```
+- Alternatively, you can pass individual environment variables using the `-e` flag:
+  ```bash
+  docker run --rm -e SEND_EMAIL=True -e DESTINATION_EMAIL=your@email.com todoist2ebook
+  ```
 
 
