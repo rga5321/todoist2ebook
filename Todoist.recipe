@@ -149,8 +149,24 @@ class Todoist2ebook(BasicNewsRecipe):
         headers = {'Authorization': f'Bearer {self.todoist_api_key}'}
         request = mechanize.Request(url, headers=headers)
 
-        response = self.browser.open(request)
+        try:
+            response = self.browser.open(request)
+        except Exception as e:
+            print(f'Error retrieving Todoist tasks:')
+            print(f'Exception: {type(e).__name__}: {str(e)}')
+            if hasattr(e, 'headers'):
+                print(f'Response headers: {e.headers}')
+            if hasattr(e, 'read'):
+                try:
+                    print(f'Response body: {e.read().decode("utf-8")}')
+                except:
+                    pass
+            raise
+        
         if response.code != 200:
+            print(f'Request failed with status code {response.code}')
+            print(f'Response headers: {dict(response.headers)}')
+            print(f'Response body: {response.read().decode("utf-8")}')
             raise Exception('Could not retrieve Todoist tasks')
         data = response.read().decode('utf-8')
         tasks = json.loads(data)

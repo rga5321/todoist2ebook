@@ -1,11 +1,5 @@
 #! /bin/bash
 
-# Load environment variables from env.local
-# set -a
-# source /home/appuser/env.local
-# set +a
-
-
-# Finally execute main.py
+# Execute main.py, passing any arguments using $@
 cd /home/appuser/todoist2ebook
-/home/appuser/todoist2ebook/.venv/bin/python3 main.py
+exec /home/appuser/todoist2ebook/.venv/bin/python3 main.py "$@"
