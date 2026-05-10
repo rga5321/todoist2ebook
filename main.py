@@ -126,6 +126,10 @@ def main():
     # Amazon's "Send to Kindle" service has problematic behavior with native EPUB files.
     # Converting EPUB → MOBI → EPUB normalizes the ebook structure and ensures better
     # compatibility and formatting when processed by Amazon's Kindle delivery service.
+
+    # Send the initial EPUB file via email if configured
+    if SEND_EMAIL:
+        send_email(file_name, smtp_conf, DESTINATION_EMAIL)
     
     # Convert EPUB to MOBI
     mobi_file_name = file_name.replace('.epub', '.mobi')
@@ -149,9 +153,8 @@ def main():
         logging.error(f"Failed to convert MOBI to EPUB: {e}")
         return
 
-    # Send the final EPUB file via email if configured
+    # Send the backup EPUB file via email if configured
     if SEND_EMAIL:
-        send_email(file_name, smtp_conf, DESTINATION_EMAIL)
         send_email(backup_epub_file_name, smtp_conf, DESTINATION_EMAIL)
     
     logging.info("End")
