@@ -42,6 +42,7 @@ This project uses `pytest` for automated testing.
 - `ARCHIVE_DOWNLOADED` = True | False => Should the script close the tasks after retrieving the urls
 - `TODOIST_PROJECT_ID` => Todoist project where the URLs will be recovered
 - `TODOIST_API_KEY` => Your api KEY
+- `TODOIST_FAILED_ARTICLES_LABEL`=> Todoist label that should be applied to articles if the download fails (optional)
 - `SEND_EMAIL`=True | False => Should the script send the email?
 - `SMTP_*` => Your server credentials
 - `DESTINATION_EMAIL` => Where should the script send the epub
@@ -51,7 +52,7 @@ This project uses `pytest` for automated testing.
 The script performs the following conversion steps:
 
 1. **Task Retrieval (API v1)** - Fetches tasks using the modern Todoist unified API (v1), replacing the deprecated REST API.
-2. **EPUB Generation** - Creates an initial EPUB file from your Todoist saved articles (`-original.epub`). If any article fails to download (due to anti-bot measures, network issues, etc.), it is excluded from the ebook, its Todoist task is **not** archived/closed, and the task is automatically tagged with `articulosmanuales` for manual reading.
+2. **EPUB Generation** - Creates an initial EPUB file from your Todoist saved articles (`-original.epub`). If any article fails to download (due to anti-bot measures, network issues, etc.), it is excluded from the ebook, its Todoist task is **not** archived/closed, and the task is automatically tagged with TODOIST_FAILED_ARTICLES_LABEL, if the parameter exist, for manual reading.
 3. **QR Code Addition** - Adds QR codes and source links to each article.
 4. **Backup Generation** - Creates a backup version by converting the original EPUB to MOBI and back to EPUB (`-backup.epub`).
 5. **Dual Email Delivery** - Sends **both** the original and backup files to your Kindle email.
