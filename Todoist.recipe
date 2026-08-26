@@ -80,6 +80,11 @@ class Todoist2ebook(BasicNewsRecipe):
             'long': 'URL of the Todoist API (mockable)',
             'default': 'https://api.todoist.com',
         },
+        'TODOIST_FAILED_ARTICLES_LABEL': {
+            'short': 'Failed articles label',
+            'long': 'Todoist label to assign to failed articles',
+            'default': '',
+        },
     }
 
     __author__ = 'ARG'
@@ -122,6 +127,13 @@ class Todoist2ebook(BasicNewsRecipe):
         )
         
         self.todoist_api_url = self.recipe_specific_options.get('TODOIST_API_URL', 'https://api.todoist.com')
+
+        if not self.recipe_specific_options.get('TODOIST_FAILED_ARTICLES_LABEL'):
+            self.todoist_failed_articles_label = None
+        else:
+            self.todoist_failed_articles_label = self.recipe_specific_options.get('TODOIST_FAILED_ARTICLES_LABEL')
+
+
 
         # Init mandatory configuration parameters
         if (
@@ -286,31 +298,38 @@ class Todoist2ebook(BasicNewsRecipe):
             if task_id:
                 failed_tasks.add(task_id)
 
-        # Label failed tasks with "articulosmanuales" if not present
-        for task_id in failed_tasks:
-            labels = self.task_id_to_labels.get(task_id, [])
-            if "articulosmanuales" not in labels:
-                labels.append("articulosmanuales")
-                url = f'https://api.todoist.com/api/v1/tasks/{task_id}'
-                req = mechanize.Request(
-                    url,
-                    data=json.dumps({"labels": labels}).encode("utf-8"),
-                    headers={
-                        'Authorization': f'Bearer {self.todoist_api_key}',
-                        'Content-Type': 'application/json',
-                    },
-                )
-                req.get_method = lambda: 'POST'
-                try:
-                    br = mechanize.Browser()
-                    response = br.open(req)
-                    if response.code == 200:
-                        print(f'Task {task_id} correctly updated with label "articulosmanuales".')
-                    else:
-                        print(f'Error while updating task {task_id}: {response.code}')
-                except Exception as e:
-                    print(f'Exception while updating task {task_id}: {e}')
+        # Label failed tasks with self.todoist_failed_articles_label if not present
+        if self.todoist_failed_articles_label is not None:
 
+            print(f'Marking failed articles with label {self.todoist_failed_articles_label}')
+
+            for task_id in failed_tasks:
+                labels = self.task_id_to_labels.get(task_id, [])
+                if self.todoist_failed_articles_label not in labels:
+                    labels.append(self.todoist_failed_articles_label)
+                    url = f'https://api.todoist.com/api/v1/tasks/{task_id}'
+                    req = mechanize.Request(
+                        url,
+                        data=json.dumps({"labels": labels}).encode("utf-8"),
+                        headers={
+                            'Authorization': f'Bearer {self.todoist_api_key}',
+                            'Content-Type': 'application/json',
+                        },
+                    )
+                    req.get_method = lambda: 'POST'
+                    try:
+                        br = mechanize.Browser()
+                        response = br.open(req)
+                        if response.code == 200:
+                            print(f'Task {task_id} correctly updated with label "{self.todoist_failed_articles_label}".')
+                        else:
+                            print(f'Error while updating task {task_id}: {response.code}')
+                    except Exception as e:
+                        print(f'Exception while updating task {task_id}: {e}')
+        else:
+            print('No label specified for failed articles, skipping labeling.')
+
+        # Even if no self.todoist_failed_articles_label exist, failed task will not be closed
         tasks_to_close = [t for t in self.to_archive if t not in failed_tasks]
 
         if not tasks_to_close:

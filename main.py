@@ -93,6 +93,8 @@ def main():
     env["ARCHIVE_DOWNLOADED"] = clean_env_var(os.getenv("ARCHIVE_DOWNLOADED", "False"))
     env["TODOIST_PROJECT_ID"] = clean_env_var(os.getenv("TODOIST_PROJECT_ID", ""))
     env["TODOIST_API_KEY"] = clean_env_var(os.getenv("TODOIST_API_KEY", ""))
+    env["TODOIST_FAILED_ARTICLES_LABEL"] = clean_env_var(os.getenv("TODOIST_FAILED_ARTICLES_LABEL", ""))
+
 
     # Check calibre version
     try:
@@ -110,7 +112,9 @@ def main():
         f'--recipe-specific-option=ARCHIVE_DOWNLOADED:{env["ARCHIVE_DOWNLOADED"]}',
         f'--recipe-specific-option=TODOIST_PROJECT_ID:{env["TODOIST_PROJECT_ID"]}',
         f'--recipe-specific-option=TODOIST_API_KEY:{env["TODOIST_API_KEY"]}',
+        f'--recipe-specific-option=TODOIST_FAILED_ARTICLES_LABEL:{env["TODOIST_FAILED_ARTICLES_LABEL"]}',
     ]
+
     
     # Building the epub with the recipe, passing env vars
     subprocess.run(
