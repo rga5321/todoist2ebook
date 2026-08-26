@@ -142,6 +142,7 @@ class Todoist2ebook(BasicNewsRecipe):
             
         self.url_to_task_id = {}
         self.failed_urls = set()
+        self.task_id_to_labels = {}
 
     def parse_index(self):
 
@@ -210,6 +211,7 @@ class Todoist2ebook(BasicNewsRecipe):
                     }
                 )
                 self.url_to_task_id[url] = task['id']
+                self.task_id_to_labels[task['id']] = task.get('labels', [])
 
         if not articles_todoist:
             self.abort_recipe_processing(
@@ -283,6 +285,31 @@ class Todoist2ebook(BasicNewsRecipe):
             task_id = self.url_to_task_id.get(url)
             if task_id:
                 failed_tasks.add(task_id)
+
+        # Label failed tasks with "articulosmanuales" if not present
+        for task_id in failed_tasks:
+            labels = self.task_id_to_labels.get(task_id, [])
+            if "articulosmanuales" not in labels:
+                labels.append("articulosmanuales")
+                url = f'https://api.todoist.com/api/v1/tasks/{task_id}'
+                req = mechanize.Request(
+                    url,
+                    data=json.dumps({"labels": labels}).encode("utf-8"),
+                    headers={
+                        'Authorization': f'Bearer {self.todoist_api_key}',
+                        'Content-Type': 'application/json',
+                    },
+                )
+                req.get_method = lambda: 'POST'
+                try:
+                    br = mechanize.Browser()
+                    response = br.open(req)
+                    if response.code == 200:
+                        print(f'Task {task_id} correctly updated with label "articulosmanuales".')
+                    else:
+                        print(f'Error while updating task {task_id}: {response.code}')
+                except Exception as e:
+                    print(f'Exception while updating task {task_id}: {e}')
 
         tasks_to_close = [t for t in self.to_archive if t not in failed_tasks]
 
