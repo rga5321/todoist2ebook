@@ -139,6 +139,9 @@ class Todoist2ebook(BasicNewsRecipe):
             self.todoist_api_key = self.recipe_specific_options['TODOIST_API_KEY']
         else:
             self.abort_recipe_processing('TODOIST_API_KEY mandatory parameter missing')
+            
+        self.url_to_task_id = {}
+        self.failed_urls = set()
 
     def parse_index(self):
 
@@ -206,6 +209,7 @@ class Todoist2ebook(BasicNewsRecipe):
                         'item_id': task['id'],
                     }
                 )
+                self.url_to_task_id[url] = task['id']
 
         if not articles_todoist:
             self.abort_recipe_processing(
@@ -274,10 +278,18 @@ class Todoist2ebook(BasicNewsRecipe):
         return self.browser
 
     def cleanup(self):
-        if not self.to_archive:
+        failed_tasks = set()
+        for url in getattr(self, 'failed_urls', set()):
+            task_id = self.url_to_task_id.get(url)
+            if task_id:
+                failed_tasks.add(task_id)
+
+        tasks_to_close = [t for t in self.to_archive if t not in failed_tasks]
+
+        if not tasks_to_close:
             return
 
-        for task_id in self.to_archive:
+        for task_id in tasks_to_close:
             url = f'https://api.todoist.com/api/v1/tasks/{task_id}/close'
             req = mechanize.Request(
                 url,
@@ -297,6 +309,13 @@ class Todoist2ebook(BasicNewsRecipe):
                     print(f'Error while closing task {task_id}: {response.code}')
             except Exception as e:
                 print(f'Exception while closing task {task_id}: {e}')
+
+    def error_in_article_download(self, request, traceback):
+        super().error_in_article_download(request, traceback)
+        self.failed_urls.add(request.article.url)
+        # Remove the article from the feed to prevent empty article generation
+        if hasattr(request.feed, 'remove_article'):
+            request.feed.remove_article(request.article)
 
     # TODO: This works with EPUB, but not mobi/azw3
     # BUG: https://bugs.launchpad.net/calibre/+bug/1838486
