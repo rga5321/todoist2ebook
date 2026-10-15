@@ -36,6 +36,7 @@ def add_qr_to_epub(epub_path):
                 html_files.append(os.path.join(root, file))
 
     # 3. For each HTML file, find the article URL and add a QR code
+    articles_count = 0
     for html_file in html_files:
         with open(html_file, 'r', encoding='utf-8') as f:
             soup = BeautifulSoup(f, 'html.parser')
@@ -47,6 +48,8 @@ def add_qr_to_epub(epub_path):
             url = a_tag['href']
         if not url:
             continue  # No URL found, skip this file
+
+        articles_count += 1
 
         # Generate the QR code for the article URL
         qr = qrcode.QRCode(box_size=3, border=2)
@@ -84,3 +87,4 @@ def add_qr_to_epub(epub_path):
                 zip_out.write(file_path, arcname)
     shutil.move(temp_epub, epub_path)
     shutil.rmtree(temp_dir)
+    return articles_count
