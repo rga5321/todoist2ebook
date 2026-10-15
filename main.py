@@ -117,14 +117,26 @@ def main():
 
     
     # Building the epub with the recipe, passing env vars
-    subprocess.run(
-        cmd,
-        env=env,
-    )
+    try:
+        subprocess.run(
+            cmd,
+            env=env,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to build initial EPUB: {e}")
+        if os.path.exists(file_name):
+            os.remove(file_name)
+        return
 
     # Add QR to every article in epub file
     logging.info("Adding QR codes to EPUB")
-    add_qr_to_epub(file_name)
+    articles_count = add_qr_to_epub(file_name)
+    if articles_count == 0:
+        logging.warning("Generated EPUB contains no downloaded articles. Aborting conversion and delivery.")
+        if os.path.exists(file_name):
+            os.remove(file_name)
+        return
 
     # EPUB to MOBI to EPUB conversion round-trip
     # Amazon's "Send to Kindle" service has problematic behavior with native EPUB files.
