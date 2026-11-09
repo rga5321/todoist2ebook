@@ -7,12 +7,8 @@ import sys
 # Add parent directory to path to import main
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import parse_env_list, main
+from main import main
 
-def test_parse_env_list():
-    assert parse_env_list("['a', 'b']") == ['a', 'b']
-    assert parse_env_list("[]") == []
-    assert parse_env_list("invalid") == []
 
 @patch('subprocess.check_output')
 @patch('subprocess.run')

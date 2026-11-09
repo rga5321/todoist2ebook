@@ -6,13 +6,11 @@ import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
-import os
 import email.utils
 import mimetypes
 
 from dotenv import load_dotenv
 from epub_qr import add_qr_to_epub
-import ast
 
 # Load environment variables
 load_dotenv()
@@ -23,12 +21,6 @@ def clean_env_var(val):
         return val
     # Strip everything after a '#' to handle inline comments, then strip quotes/spaces
     return str(val).split("#", 1)[0].strip(" \"'")
-
-def parse_env_list(val):
-    try:
-        return ast.literal_eval(val)
-    except Exception:
-        return []
 
 def send_email(file_name, smtp_conf, destination_email):
     logging.info("Sending email to: " + destination_email)
