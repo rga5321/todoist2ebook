@@ -9,6 +9,7 @@ The `todoist2ebook` project is a Python-based utility that extracts saved articl
     *   Loads environment variables for configuration (Todoist credentials, SMTP settings for emailing, etc.) using `python-dotenv`. Values are sanitized by `clean_env_var`, which strips inline `#` comments and surrounding quotes/spaces.
     *   Invokes the Calibre command-line tool (`ebook-convert`) to build the initial EPUB using the `Todoist.recipe` file, passing configuration through `--recipe-specific-option` flags (`URL_KEYWORD_EXCEPTIONS`, `ARCHIVE_DOWNLOADED`, `TODOIST_PROJECT_ID`, `TODOIST_API_KEY`, `TODOIST_FAILED_ARTICLES_LABEL`).
     *   The initial output is named `todoist-{timestamp}-original.epub`.
+    *   Calls the `epub_sections` module to remove sections whose articles all failed to download. Cleanup failures are logged and do not abort the run.
     *   Calls the `epub_qr` module to add QR codes to the generated EPUB.
     *   Aborts if the generated EPUB contains no downloaded articles: `add_qr_to_epub` returns the number of articles processed, and if it is `0`, the file is deleted and the run exits (the "empty ebook" guard).
     *   Sends the original EPUB via email **before** the format conversion round-trip, when `SEND_EMAIL` is enabled.
@@ -36,12 +37,20 @@ The `todoist2ebook` project is a Python-based utility that extracts saved articl
     *   Injects an `<img>` tag containing the QR code at the end of the article's `<body>`. (The docstring mentions also adding a `Source: URL` paragraph and preferring `<a rel="alternate">`, but the implementation does neither.)
     *   Repacks the EPUB file with the new images and modified HTML. The repack preserves file paths but uses the default ZIP storage settings.
 
+4.  **`epub_sections.py` (Post-processing)**
+    *   Provides `remove_empty_sections(epub_path)`, which removes section shells left behind when every article in a section fails to download. Calibre creates the section index, NCX and OPF entries before downloads, so the recipe's failed-article removal leaves empty sections in the final EPUB.
+    *   Treats a section as empty when its index page is missing or when none of its `a.article` links point to an existing file.
+    *   Removes the empty section's `<li>` from `index.html`, its `navPoint`s from `toc.ncx` (renumbering `playOrder`), and its manifest/spine entries from `content.opf`.
+    *   Rewires the surviving sections' "Previous section" / "Next section" links to the nearest surviving section, dropping the links at the ends.
+    *   Repacks the EPUB atomically and returns the number of removed sections.
+
 ## Workflow Summary
 
 1.  **Extract:** The script connects to the Todoist API, retrieves tasks from a specified project, and extracts web URLs from them. Excluded URLs are skipped.
 2.  **Convert:** Calibre downloads the content from the URLs and packages it into an EPUB file (`-original.epub`). Failed downloads are excluded and can be labeled in Todoist.
-3.  **Enhance:** A QR code pointing to the source URL is appended to each article in the EPUB.
-4.  **Guard:** If no articles were downloaded, the run aborts before conversion or delivery.
-5.  **Deliver original:** The original EPUB is emailed (if configured).
-6.  **Normalize:** The EPUB is converted to MOBI and back to EPUB to ensure it is structurally sound for Amazon's Kindle delivery.
-7.  **Deliver backup:** The normalized backup EPUB (`-backup.epub`) is emailed. The intermediate `.mobi` file is left on disk.
+3.  **Clean:** Sections left empty because all of their articles failed are removed from the EPUB.
+4.  **Enhance:** A QR code pointing to the source URL is appended to each article in the EPUB.
+5.  **Guard:** If no articles were downloaded, the run aborts before conversion or delivery.
+6.  **Deliver original:** The original EPUB is emailed (if configured).
+7.  **Normalize:** The EPUB is converted to MOBI and back to EPUB to ensure it is structurally sound for Amazon's Kindle delivery.
+8.  **Deliver backup:** The normalized backup EPUB (`-backup.epub`) is emailed. The intermediate `.mobi` file is left on disk.

@@ -11,6 +11,7 @@ import mimetypes
 
 from dotenv import load_dotenv
 from epub_qr import add_qr_to_epub
+from epub_sections import remove_empty_sections
 
 # Load environment variables
 load_dotenv()
@@ -120,6 +121,18 @@ def main():
         if os.path.exists(file_name):
             os.remove(file_name)
         return
+
+    # Remove sections whose articles all failed to download. This happens after
+    # Calibre has built the EPUB because failed articles are removed too late
+    # for Calibre's own empty-feed filtering.
+    try:
+        removed_sections = remove_empty_sections(file_name)
+        if removed_sections:
+            logging.info(f"Removed {removed_sections} empty section(s) from EPUB")
+    except Exception:
+        logging.exception(
+            "Failed to remove empty sections; continuing with the current EPUB"
+        )
 
     # Add QR to every article in epub file
     logging.info("Adding QR codes to EPUB")

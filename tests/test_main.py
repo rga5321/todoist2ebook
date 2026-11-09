@@ -13,8 +13,9 @@ from main import main
 @patch('subprocess.check_output')
 @patch('subprocess.run')
 @patch('main.add_qr_to_epub')
+@patch('main.remove_empty_sections')
 @patch('main.send_email')
-def test_main_execution(mock_send_email, mock_add_qr, mock_run, mock_check_output):
+def test_main_execution(mock_send_email, mock_remove_empty, mock_add_qr, mock_run, mock_check_output):
     # Setup mocks
     mock_check_output.side_effect = [
         b"2025-01-01_1200\n", # date
@@ -35,14 +36,16 @@ def test_main_execution(mock_send_email, mock_add_qr, mock_run, mock_check_outpu
         
     # Verify calls
     assert mock_run.called
+    assert mock_remove_empty.called
     assert mock_add_qr.called
     assert mock_send_email.called
 
 @patch('subprocess.check_output')
 @patch('subprocess.run')
 @patch('main.add_qr_to_epub')
+@patch('main.remove_empty_sections')
 @patch('main.send_email')
-def test_main_no_email(mock_send_email, mock_add_qr, mock_run, mock_check_output):
+def test_main_no_email(mock_send_email, mock_remove_empty, mock_add_qr, mock_run, mock_check_output):
     # Setup mocks
     mock_check_output.side_effect = [
         b"2025-01-01_1200\n", # date
@@ -57,3 +60,24 @@ def test_main_no_email(mock_send_email, mock_add_qr, mock_run, mock_check_output
         
     # Verify email was NOT sent
     assert not mock_send_email.called
+
+
+@patch('subprocess.check_output')
+@patch('subprocess.run')
+@patch('main.add_qr_to_epub')
+@patch('main.remove_empty_sections')
+@patch('main.send_email')
+def test_main_continues_when_section_cleanup_fails(
+    mock_send_email, mock_remove_empty, mock_add_qr, mock_run, mock_check_output
+):
+    mock_check_output.side_effect = [
+        b"2025-01-01_1200\n",  # date
+        b"Calibre 5.0",  # version
+    ]
+    mock_remove_empty.side_effect = RuntimeError("cleanup failed")
+
+    with patch.dict(os.environ, {"SEND_EMAIL": "False"}):
+        main()
+
+    assert mock_remove_empty.called
+    assert mock_add_qr.called
