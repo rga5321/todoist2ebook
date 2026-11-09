@@ -5,6 +5,7 @@ import subprocess
 import logging
 import smtplib
 import ssl
+import sys
 from email.message import EmailMessage
 import email.utils
 import mimetypes
@@ -22,6 +23,38 @@ def clean_env_var(val):
         return val
     # Strip everything after a '#' to handle inline comments, then strip quotes/spaces
     return str(val).split("#", 1)[0].strip(" \"'")
+
+def run_ebook_convert(cmd, env):
+    """Run ebook-convert while filtering recipe-specific options from its output.
+
+    Calibre logs the values of all recipe-specific options at INFO level, which
+    can include credentials. The values are still passed on the command line,
+    but this keeps them out of the log.
+    """
+    process = subprocess.Popen(
+        cmd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
+    try:
+        for line in process.stdout:
+            if (
+                "TODOIST_API_KEY" in line
+            ):
+                continue
+            sys.stdout.write(line)
+            sys.stdout.flush()
+    finally:
+        process.stdout.close()
+
+    returncode = process.wait()
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, cmd)
 
 def send_email(file_name, smtp_conf, destination_email):
     logging.info("Sending email to: " + destination_email)
@@ -111,11 +144,7 @@ def main():
     
     # Building the epub with the recipe, passing env vars
     try:
-        subprocess.run(
-            cmd,
-            env=env,
-            check=True,
-        )
+        run_ebook_convert(cmd, env)
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to build initial EPUB: {e}")
         if os.path.exists(file_name):

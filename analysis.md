@@ -8,6 +8,7 @@ The `todoist2ebook` project is a Python-based utility that extracts saved articl
     *   Acts as the main entry point for the application.
     *   Loads environment variables for configuration (Todoist credentials, SMTP settings for emailing, etc.) using `python-dotenv`. Values are sanitized by `clean_env_var`, which strips inline `#` comments and surrounding quotes/spaces.
     *   Invokes the Calibre command-line tool (`ebook-convert`) to build the initial EPUB using the `Todoist.recipe` file, passing configuration through `--recipe-specific-option` flags (`URL_KEYWORD_EXCEPTIONS`, `ARCHIVE_DOWNLOADED`, `TODOIST_PROJECT_ID`, `TODOIST_API_KEY`, `TODOIST_FAILED_ARTICLES_LABEL`).
+    *   `run_ebook_convert` streams Calibre's output (stdout and stderr merged) and filters lines containing `TODOIST_API_KEY`, so credential values do not appear in the application log. The values are still passed as command-line arguments.
     *   The initial output is named `todoist-{timestamp}-original.epub`.
     *   Calls the `epub_sections` module to remove sections whose articles all failed to download. Cleanup failures are logged and do not abort the run.
     *   Calls the `epub_qr` module to add QR codes to the generated EPUB.
