@@ -58,6 +58,50 @@ def _find_file(temp_dir, name):
     return None
 
 
+def _find_index(temp_dir):
+    """Return ``(rel, soup)`` for the top-level feed index.
+
+    Calibre renames duplicate output filenames (for example ``index.html``
+    becomes ``index_u6.html``), and a section or article page can end up being
+    called ``index.html``. Identify the real index by its section links
+    (``a.feed`` inside ``ul.calibre_feed_list``) instead of its filename.
+    """
+    best = None
+    best_key = None
+
+    for root, dirs, files in os.walk(temp_dir):
+        dirs.sort()
+        files.sort()
+        for filename in files:
+            if not filename.lower().endswith((".html", ".xhtml")):
+                continue
+
+            path = os.path.join(root, filename)
+            rel = os.path.relpath(path, temp_dir).replace(os.sep, "/")
+            soup = _read_html(path)
+            feed_list = soup.find("ul", class_=FEED_LIST_CLASS)
+            if feed_list is None:
+                continue
+
+            count = sum(
+                1
+                for item in feed_list.find_all("li", recursive=False)
+                if item.find("a", class_=FEED_LINK_CLASS, href=True) is not None
+            )
+            if not count:
+                continue
+
+            # Prefer the page with the most section links, then the shallowest.
+            key = (count, -rel.count("/"))
+            if best_key is None or key > best_key:
+                best_key = key
+                best = (rel, soup)
+
+    if best is None:
+        return None, None
+    return best
+
+
 def _read_html(path):
     with open(path, "r", encoding="utf-8") as handle:
         return BeautifulSoup(handle, "html.parser")
@@ -174,27 +218,50 @@ def _update_opf(temp_dir, empty_hrefs):
     _write_xml(document, path)
 
 
-def _rewire_navbars(temp_dir, sections):
-    """Point Previous/Next section links at the nearest surviving section."""
-    for index, section in enumerate(sections):
+def _rewire_navbars(temp_dir, sections, empty_hrefs):
+    """Point section navigation links at the nearest surviving section.
+
+    Calibre localizes the "Previous section"/"Next section" labels, so the
+    direction is inferred from the link target's position in the original
+    section order instead of from its text.
+    """
+    order = {section["href"]: index for index, section in enumerate(sections)}
+    surviving = [
+        section for section in sections if section["href"] not in empty_hrefs
+    ]
+
+    for section in surviving:
         path = _abs_path(temp_dir, section["href"])
         if path is None or not os.path.isfile(path):
             continue
 
         soup = _read_html(path)
         base_rel = posixpath.dirname(section["href"])
-        previous = sections[index - 1] if index > 0 else None
-        following = sections[index + 1] if index + 1 < len(sections) else None
+        current_index = order[section["href"]]
 
         changed = False
         for link in soup.find_all("a", href=True):
-            label = " ".join(link.get_text(" ", strip=True).lower().split())
-            if "previous section" in label:
-                target = previous
-            elif "next section" in label:
-                target = following
-            else:
+            target_rel = _resolve(base_rel, link["href"])
+            target_index = order.get(target_rel)
+            if target_index is None or target_index == current_index:
                 continue
+
+            direction = -1 if target_index < current_index else 1
+            candidates = [
+                candidate
+                for candidate in surviving
+                if (order[candidate["href"]] - current_index) * direction > 0
+            ]
+            target = (
+                min(
+                    candidates,
+                    key=lambda candidate: abs(
+                        order[candidate["href"]] - current_index
+                    ),
+                )
+                if candidates
+                else None
+            )
 
             changed = True
             if target is None:
@@ -244,12 +311,11 @@ def remove_empty_sections(epub_path):
         with zipfile.ZipFile(epub_path, "r") as archive:
             archive.extractall(temp_dir)
 
-        index_rel = _find_file(temp_dir, "index.html")
+        index_rel, index_soup = _find_index(temp_dir)
         if index_rel is None:
             return 0
 
         index_path = _abs_path(temp_dir, index_rel)
-        index_soup = _read_html(index_path)
         feed_list = index_soup.find("ul", class_=FEED_LIST_CLASS)
         if feed_list is None:
             return 0
@@ -287,10 +353,7 @@ def remove_empty_sections(epub_path):
         _update_toc(temp_dir, empty_hrefs)
         _update_opf(temp_dir, empty_hrefs)
 
-        surviving = [
-            section for section in sections if section["href"] not in empty_hrefs
-        ]
-        _rewire_navbars(temp_dir, surviving)
+        _rewire_navbars(temp_dir, sections, empty_hrefs)
 
         _repack(temp_dir, epub_path)
         return len(empty_sections)

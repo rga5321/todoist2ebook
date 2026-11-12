@@ -16,16 +16,27 @@ def _rel(target, from_file):
     return posixpath.relpath(target, posixpath.dirname(from_file) or ".")
 
 
-def _feed_page(section, sections):
+def _feed_page(section, sections, index_name="index.html", labels=None):
+    labels = labels or {
+        "main": "Main menu",
+        "previous": "Previous section",
+        "next": "Next section",
+    }
     index = sections.index(section)
     previous = sections[index - 1] if index > 0 else None
     following = sections[index + 1] if index + 1 < len(sections) else None
 
-    nav = ['| <a href="../index.html">Main menu</a> |']
+    nav = [f'| <a href="{_rel(index_name, section["href"])}">{labels["main"]}</a> |']
     if previous:
-        nav.append(f'<a href="{_rel(previous["href"], section["href"])}">Previous section</a> |')
+        nav.append(
+            f'<a href="{_rel(previous["href"], section["href"])}">'
+            f'{labels["previous"]}</a> |'
+        )
     if following:
-        nav.append(f'<a href="{_rel(following["href"], section["href"])}">Next section</a> |')
+        nav.append(
+            f'<a href="{_rel(following["href"], section["href"])}">'
+            f'{labels["next"]}</a> |'
+        )
     navbar = " ".join(nav)
 
     articles = "".join(
@@ -57,20 +68,24 @@ def _article_page(title):
 </html>"""
 
 
-def _build_epub(path, sections, omit_files=None):
+def _build_epub(
+    path, sections, omit_files=None, index_name="index.html", nav_labels=None
+):
     """Create a minimal Calibre-style EPUB.
 
     ``sections`` is a list of dicts with ``href``, ``title`` and ``articles``
     (each article also has ``href`` relative to the section directory).
     Files listed in ``omit_files`` are referenced but not written, which
-    simulates a page that disappeared.
+    simulates a page that disappeared. ``index_name`` mirrors Calibre's habit
+    of renaming duplicate output filenames, and ``nav_labels`` customizes the
+    navbar text (Calibre localizes it).
     """
     omit_files = set(omit_files or ())
 
     feed_items = []
     manifest = [
         '<item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml"/>',
-        '<item id="id4" href="index.html" media-type="application/xhtml+xml"/>',
+        f'<item id="id4" href="{index_name}" media-type="application/xhtml+xml"/>',
     ]
     spine = ['<itemref idref="titlepage"/>', '<itemref idref="id4"/>']
     nav_points = []
@@ -92,7 +107,9 @@ def _build_epub(path, sections, omit_files=None):
         spine.append(f'<itemref idref="{feed_id}"/>')
 
         if section["href"] not in omit_files:
-            files[section["href"]] = _feed_page(section, sections)
+            files[section["href"]] = _feed_page(
+                section, sections, index_name=index_name, labels=nav_labels
+            )
 
         nav_points.append(
             f'<navPoint id="num_{order}" playOrder="{order}" class="chapter">'
@@ -125,7 +142,7 @@ def _build_epub(path, sections, omit_files=None):
 
     files["mimetype"] = "application/epub+zip"
     files["titlepage.xhtml"] = _article_page("Cover")
-    files["index.html"] = (
+    files[index_name] = (
         "<?xml version='1.0' encoding='utf-8'?>\n"
         '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Todoist</title></head>'
         '<body><ul class="calibre_feed_list">'
@@ -323,3 +340,97 @@ def test_missing_article_target_makes_section_empty(tmp_path):
     hrefs = [node.getAttribute("href") for node in opf.getElementsByTagName("item")]
     assert "feed_0/index_u1.html" not in hrefs
     assert "feed_0/article_0/a.html" not in hrefs
+
+
+def test_renamed_index_and_index_named_pages(tmp_path):
+    """Calibre renames duplicate index.html files; find the real index anyway."""
+    epub_path = str(tmp_path / "test.epub")
+    sections = [
+        {"href": "feed_0/index_u7.html", "title": "elpais.com", "articles": []},
+        {
+            "href": "feed_1/index_u2.html",
+            "title": "eetimes.com",
+            "articles": [
+                # An article page can also end up being called index.html.
+                {"href": "article_0/index.html", "title": "An article"}
+            ],
+        },
+        {
+            # A section page can keep the name index.html while the top-level
+            # index is renamed to index_u6.html.
+            "href": "feed_2/index.html",
+            "title": "xataka.com",
+            "articles": [{"href": "article_0/index_u3.html", "title": "Another"}],
+        },
+    ]
+    _build_epub(epub_path, sections, index_name="index_u6.html")
+
+    assert remove_empty_sections(epub_path) == 1
+
+    names = _codes(epub_path)
+    assert "feed_0/index_u7.html" not in names
+    assert "feed_1/index_u2.html" in names
+    assert "feed_1/article_0/index.html" in names
+    assert "feed_2/index.html" in names
+
+    index = _html(epub_path, "index_u6.html")
+    assert [link["href"] for link in index.select("a.feed")] == [
+        "feed_1/index_u2.html",
+        "feed_2/index.html",
+    ]
+
+    toc = _xml(epub_path, "toc.ncx")
+    sources = [
+        node.getAttribute("src") for node in toc.getElementsByTagName("content")
+    ]
+    assert "feed_0/index_u7.html" not in sources
+    assert "feed_1/index_u2.html" in sources
+    assert "feed_2/index.html" in sources
+
+
+def test_rewires_localized_navigation_across_removed_section(tmp_path):
+    epub_path = str(tmp_path / "test.epub")
+    sections = [
+        {
+            "href": "feed_0/index_u1.html",
+            "title": "first.com",
+            "articles": [{"href": "article_0/a.html", "title": "First"}],
+        },
+        {"href": "feed_1/index_u2.html", "title": "empty.com", "articles": []},
+        {
+            "href": "feed_2/index_u3.html",
+            "title": "third.com",
+            "articles": [{"href": "article_0/c.html", "title": "Third"}],
+        },
+    ]
+    _build_epub(
+        epub_path,
+        sections,
+        nav_labels={
+            "main": "Menú principal",
+            "previous": "Sección anterior",
+            "next": "Siguiente sección",
+        },
+    )
+
+    assert remove_empty_sections(epub_path) == 1
+
+    first_page = _html(epub_path, "feed_0/index_u1.html")
+    next_link = first_page.find(
+        "a", string=lambda value: value and "Siguiente sección" in value
+    )
+    assert next_link is not None
+    assert posixpath.normpath(
+        posixpath.join(posixpath.dirname("feed_0/index_u1.html"), next_link["href"])
+    ) == "feed_2/index_u3.html"
+
+    third_page = _html(epub_path, "feed_2/index_u3.html")
+    previous_link = third_page.find(
+        "a", string=lambda value: value and "Sección anterior" in value
+    )
+    assert previous_link is not None
+    assert posixpath.normpath(
+        posixpath.join(
+            posixpath.dirname("feed_2/index_u3.html"), previous_link["href"]
+        )
+    ) == "feed_0/index_u1.html"
